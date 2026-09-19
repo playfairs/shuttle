@@ -6,6 +6,11 @@
 
     flake-parts.url = "github:hercules-ci/flake-parts";
 
+    nox = {
+      url = "github:playfairs/nox";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -41,6 +46,7 @@
           devShells.default = pkgs.mkShell {
             packages = [
               rustToolchain
+              inputs.nox.packages.${system}.default
               pkgs.pkg-config
             ];
 

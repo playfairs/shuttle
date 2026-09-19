@@ -1,0 +1,14 @@
+tasks:
+    format:
+        run: cargo fmt --all
+    check:
+        run: cargo check
+    build:
+        @nox check
+        run: cargo build --release
+    test:
+        @nox check
+        run: cargo test --all-targets
+    lint:
+        @nox check
+        run: cargo clippy --all-targets --all-features -- -D warnings

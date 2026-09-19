@@ -1,0 +1,9 @@
+project "shuttle" {
+    version = "0.1.0"
+    description = "A cross-platform utility for moving files, data, and services between machines."
+    license = "Unlicense"
+
+    executable.rust "shuttle" {
+        sources = ["src/main.rs"]
+    }
+}
