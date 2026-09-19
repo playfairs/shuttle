@@ -1,5 +1,6 @@
 use crate::error::Result;
 use crate::protocol::ProtocolMessage;
+use crate::transfer::ProgressTracker;
 use crate::transport::QuicStream;
 use std::path::Path;
 use tokio::fs::File;
@@ -37,6 +38,7 @@ impl FileSender {
         let mut file = File::open(file_path).await?;
         let mut buffer = vec![0u8; 65536];
         let mut total_sent = 0u64;
+        let progress = ProgressTracker::new(file_size);
 
         loop {
             let n = file.read(&mut buffer).await?;
@@ -46,9 +48,15 @@ impl FileSender {
 
             self.stream.write_all(&buffer[..n]).await?;
             total_sent += n as u64;
+            progress.update(n as u64);
 
-            if total_sent % (1024 * 1024) == 0 {
-                debug!("Sent {} / {} bytes", total_sent, file_size);
+            if total_sent.is_multiple_of(1024 * 1024) {
+                debug!(
+                    "Sent {} / {} bytes ({:.1}%)",
+                    progress.current(),
+                    file_size,
+                    progress.progress_percentage()
+                );
             }
         }
 
@@ -61,7 +69,11 @@ impl FileSender {
             )));
         }
 
-        info!("File transfer complete: {} bytes", total_sent);
+        info!(
+            "File transfer complete: {} bytes in {} seconds",
+            total_sent,
+            progress.elapsed_secs()
+        );
         Ok(total_sent)
     }
 }

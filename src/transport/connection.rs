@@ -1,7 +1,6 @@
 use crate::error::{Result, ShuttleError};
 use bytes::BytesMut;
 use quinn::{RecvStream, SendStream};
-use std::net::SocketAddr;
 
 pub struct QuicConnection {
     connection: quinn::Connection,
@@ -23,10 +22,6 @@ impl QuicConnection {
             Err(quinn::ConnectionError::LocallyClosed) => Ok(None),
             Err(e) => Err(ShuttleError::ConnectionError(e.to_string())),
         }
-    }
-
-    pub fn remote_address(&self) -> SocketAddr {
-        self.connection.remote_address()
     }
 
     pub async fn close(&self, code: u32, reason: &[u8]) {

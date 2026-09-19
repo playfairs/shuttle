@@ -58,8 +58,6 @@ impl IgnorePatterns {
         if pattern.contains('*') {
             let glob_pattern = if pattern.starts_with('*') {
                 pattern.to_string()
-            } else if pattern.contains('/') {
-                format!("**/{}", pattern)
             } else {
                 format!("**/{}", pattern)
             };
@@ -305,7 +303,7 @@ async fn serve_single_file(file_path: &Path, query: Query<TokenQuery>) -> Respon
             }
             Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Failed to open file").into_response(),
         }
-    } else {
+    } else if is_text_file(file_path) {
         match fs::read_to_string(file_path).await {
             Ok(content) => match render_file_viewer(file_path, &content).await {
                 Ok(html) => Html(html).into_response(),
@@ -353,6 +351,38 @@ async fn serve_single_file(file_path: &Path, query: Query<TokenQuery>) -> Respon
                 Html(html).into_response()
             }
         }
+    } else {
+        let file_size = get_file_size(file_path).await;
+        let filename = file_path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("file");
+        let size_str = file_size
+            .map(|s| format!("{} bytes", s))
+            .unwrap_or_else(|| "unknown".to_string());
+
+        let html = format!(
+            r#"<!DOCTYPE html>
+<html>
+<head>
+    <title>{} - Binary File</title>
+    <style>
+        body {{ font-family: monospace; padding: 20px; }}
+        .header {{ margin-bottom: 20px; }}
+        .download {{ margin-left: 20px; }}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <strong>{}</strong>
+        <a href="?download" class="download">Download</a>
+    </div>
+    <p>This is a binary file ({}) that cannot be displayed as text.</p>
+</body>
+</html>"#,
+            filename, filename, size_str
+        );
+        Html(html).into_response()
     }
 }
 
@@ -400,21 +430,18 @@ async fn serve_directory(
 
                     let entry_path = name.clone();
 
-                    match entry.file_type().await {
-                        Ok(ft) => {
-                            if ft.is_dir() {
-                                html.push_str(&format!(
-                                    "<li><a href='{}/'>{}/</a></li>",
-                                    entry_path, name
-                                ));
-                            } else {
-                                html.push_str(&format!(
-                                    "<li><a href='{}'>{}</a></li>",
-                                    entry_path, name
-                                ));
-                            }
+                    if let Ok(ft) = entry.file_type().await {
+                        if ft.is_dir() {
+                            html.push_str(&format!(
+                                "<li><a href='{}/'>{}/</a></li>",
+                                entry_path, name
+                            ));
+                        } else {
+                            html.push_str(&format!(
+                                "<li><a href='{}'>{}</a></li>",
+                                entry_path, name
+                            ));
                         }
-                        Err(_) => {}
                     }
                 }
             }

@@ -3,7 +3,6 @@ use crate::protocol::ProtocolMessage;
 use crate::transport::{create_client_endpoint, QuicConnection};
 use std::net::SocketAddr;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tracing::debug;
 
 pub async fn proxy_tcp_through_quic(
     mut tcp_stream: tokio::net::TcpStream,
@@ -50,19 +49,6 @@ pub async fn proxy_tcp_through_quic(
                     }
                 }
             }
-        }
-    }
-
-    Ok(())
-}
-
-pub async fn proxy_tunnel_stream(mut quic_stream: crate::transport::QuicStream) -> Result<()> {
-    let mut buf = vec![0u8; 65536];
-    debug!("Proxying tunnel stream");
-
-    while let Some(n) = quic_stream.read(&mut buf).await? {
-        if n == 0 {
-            break;
         }
     }
 

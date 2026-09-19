@@ -51,7 +51,7 @@ impl FileReceiver {
                     file.write_all(&buffer[..n]).await?;
                     total_received += n as u64;
 
-                    if total_received % (1024 * 1024) == 0 {
+                    if total_received.is_multiple_of(1024 * 1024) {
                         debug!("Received {} / {} bytes", total_received, expected_size);
                     }
                 }

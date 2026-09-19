@@ -16,11 +16,7 @@ use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 async fn main() -> Result<()> {
     let cli = parse();
 
-    let env_filter = cli
-        .log_level
-        .as_ref()
-        .map(|s| s.as_str())
-        .unwrap_or("shuttle=info");
+    let env_filter = cli.log_level.as_deref().unwrap_or("shuttle=info");
 
     tracing_subscriber::registry()
         .with(fmt::layer())

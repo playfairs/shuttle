@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-pub const PROTOCOL_VERSION: u8 = 1;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ProtocolMessage {
     Hello { version: u8 },

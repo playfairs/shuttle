@@ -37,7 +37,7 @@ pub async fn handle_send(file_path: &Path, address: &str) -> Result<()> {
     let mut sender = FileSender::new(stream);
     sender.send_file(file_path).await?;
 
-    quic_conn.close(0, b"transfer complete");
+    quic_conn.close(0, b"transfer complete").await;
 
     info!("Transfer finished successfully");
     Ok(())

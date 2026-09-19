@@ -15,11 +15,8 @@ pub enum ShuttleError {
     #[error("Transfer error: {0}")]
     TransferError(String),
 
-    #[error("File not found: {0}")]
+    #[error("File does not exist: {0}")]
     FileNotFound(String),
-
-    #[error("Bind error: {0}")]
-    BindError(String),
 
     #[error("Connection error: {0}")]
     ConnectionError(String),
